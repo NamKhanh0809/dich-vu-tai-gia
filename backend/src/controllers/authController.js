@@ -1,4 +1,4 @@
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { createUser, findUserByEmail, findUserByPhone, findUserById } = require('../models/userModel');
 // SỬA Ở ĐÂY: Thêm getProfileByUserId vào danh sách import
