@@ -47,7 +47,21 @@ const createNewOrder = async (req, res) => {
         await connection.commit();
         
         // Gửi thông báo cho admin (giả sử admin có id = 1)
-        await createNotification(1, 'New order pending', `Customer ${customerId} created order #${orderId}`, orderId);
+        // Tự động tìm ID của tài khoản Admin đầu tiên trong hệ thống
+const [adminUsers] = await pool.execute('SELECT id FROM users WHERE role = "admin" LIMIT 1');
+
+if (adminUsers.length > 0) {
+    const adminId = adminUsers[0].id;
+    // Gửi thông báo cho admin bằng ID vừa tìm được
+    await createNotification(
+        adminId, 
+        'New order pending', 
+        `Customer ${customerId} created order #${orderId}`, 
+        orderId
+    );
+} else {
+    console.warn("Không tìm thấy tài khoản admin nào để gửi thông báo.");
+}
         
         // Thông báo cho customer
         await createNotification(customerId, 'Order created', `Your order #${orderId} has been placed and pending approval`, orderId);

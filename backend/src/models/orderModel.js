@@ -122,7 +122,12 @@ const getWorkerOrdersWithCustomer = async (workerId, status) => {
 };
 
 const getWorkerHistory = async (workerId, page = 1, limit = 10) => {
-    const offset = (page - 1) * limit;
+    // 1. Ép kiểu dữ liệu về số nguyên (Cực kỳ quan trọng)
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = parseInt(limit, 10) || 10;
+    const offsetNum = (pageNum - 1) * limitNum;
+
+    // 2. Sửa o.updated_at thành o.created_at (nếu DB bạn không có updated_at)
     const [rows] = await pool.execute(
         `SELECT o.*, 
                 u.email as customer_email, u.phone as customer_phone,
@@ -136,10 +141,11 @@ const getWorkerHistory = async (workerId, page = 1, limit = 10) => {
          LEFT JOIN services s ON os.service_id = s.id
          WHERE ow.worker_id = ? AND o.status IN ('completed', 'cancelled')
          GROUP BY o.id
-         ORDER BY o.updated_at DESC
+         ORDER BY o.created_at DESC 
          LIMIT ? OFFSET ?`,
-        [workerId, limit, offset]
+        [workerId, limitNum, offsetNum] // Truyền số nguyên vào đây
     );
+    
     const [countResult] = await pool.execute(
         `SELECT COUNT(DISTINCT o.id) as total 
          FROM orders o 
@@ -147,11 +153,12 @@ const getWorkerHistory = async (workerId, page = 1, limit = 10) => {
          WHERE ow.worker_id = ? AND o.status IN ("completed", "cancelled")`,
         [workerId]
     );
+    
     return {
         orders: rows,
         total: countResult[0].total,
-        page,
-        limit
+        page: pageNum,
+        limit: limitNum
     };
 };
 
