@@ -2,14 +2,14 @@ const pool = require('../config/database');
 
 const createEmptyProfile = async (userId) => {
     await pool.execute(
-        'INSERT INTO Profiles (user_id, full_name) VALUES (?, ?)',
+        'INSERT INTO profiles (user_id, full_name) VALUES (?, ?)',
         [userId, '']   // full_name có thể cập nhật sau
     );
 };
 
 const updateWorkerProfile = async (userId, cccdFrontUrl, cccdBackUrl, certificateUrl, fullName) => {
     const [result] = await pool.execute(
-        `UPDATE Profiles 
+        `UPDATE profiles 
          SET full_name = ?, cccd_front_url = ?, cccd_back_url = ?, certificate_url = ?, approval_status = 'pending'
          WHERE user_id = ?`,
         [fullName, cccdFrontUrl, cccdBackUrl, certificateUrl, userId]
@@ -18,15 +18,15 @@ const updateWorkerProfile = async (userId, cccdFrontUrl, cccdBackUrl, certificat
 };
 
 const getProfileByUserId = async (userId) => {
-    const [rows] = await pool.execute('SELECT * FROM Profiles WHERE user_id = ?', [userId]);
+    const [rows] = await pool.execute('SELECT * FROM profiles WHERE user_id = ?', [userId]);
     return rows[0];
 };
 
 const getAllPendingProfiles = async () => {
     const [rows] = await pool.execute(
         `SELECT p.*, u.email, u.phone, u.role 
-         FROM Profiles p 
-         JOIN Users u ON p.user_id = u.id 
+         FROM profiles p 
+         JOIN users u ON p.user_id = u.id 
          WHERE p.approval_status = 'pending' AND u.role = 'worker'`
     );
     return rows;
@@ -63,7 +63,7 @@ const updateApprovalStatus = async (userId, status, rejectReason = null) => {
 const updateProfileImages = async (userId, images) => {
     const certificatesJson = JSON.stringify(images.certificates);
     await pool.execute(
-        `UPDATE Profiles SET 
+        `UPDATE profiles SET 
            cccd_front_image = ?, 
            cccd_back_image = ?, 
            certificates_images = ?,

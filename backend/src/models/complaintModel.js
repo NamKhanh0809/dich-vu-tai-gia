@@ -7,10 +7,10 @@ const getAllComplaints = async (statusFilter = null) => {
                o.id as order_id, o.status as order_status,
                u.email as complainant_email, u.phone as complainant_phone,
                p.full_name as complainant_name
-        FROM Complaints c
-        JOIN Orders o ON c.order_id = o.id
-        JOIN Users u ON c.complainant_id = u.id
-        JOIN Profiles p ON u.id = p.user_id
+        FROM complaints c
+        JOIN orders o ON c.order_id = o.id
+        JOIN users u ON c.complainant_id = u.id
+        JOIN profiles p ON u.id = p.user_id
         WHERE 1=1
     `;
     const params = [];
@@ -27,7 +27,7 @@ const getAllComplaints = async (statusFilter = null) => {
 const resolveComplaint = async (complaintId, resolution, newStatus) => {
     // newStatus: 'resolved' hoặc 'refunded'
     const [result] = await pool.execute(
-        `UPDATE Complaints 
+        `UPDATE complaints 
          SET resolution = ?, status = ?, resolved_at = NOW()
          WHERE id = ?`,
         [resolution, newStatus, complaintId]
@@ -37,7 +37,7 @@ const resolveComplaint = async (complaintId, resolution, newStatus) => {
 
 // Lấy thông tin complaint kèm order_id (để cập nhật order nếu hoàn tiền)
 const getComplaintById = async (complaintId) => {
-    const [rows] = await pool.execute('SELECT * FROM Complaints WHERE id = ?', [complaintId]);
+    const [rows] = await pool.execute('SELECT * FROM complaints WHERE id = ?', [complaintId]);
     return rows[0];
 };
 

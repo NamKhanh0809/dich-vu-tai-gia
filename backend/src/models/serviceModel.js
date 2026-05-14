@@ -2,14 +2,14 @@ const pool = require('../config/database');
 
 const getAllActiveServices = async () => {
     const [rows] = await pool.execute(
-        'SELECT id, name, description, image_url, price_range, base_price, status FROM Services WHERE status = "active"'
+        'SELECT id, name, description, image_url, price_range, base_price, status FROM services WHERE status = "active"'
     );
     return rows;
 };
 
 const getServiceById = async (id) => {
     const [rows] = await pool.execute(
-        'SELECT * FROM Services WHERE id = ? AND status = "active"',
+        'SELECT * FROM services WHERE id = ? AND status = "active"',
         [id]
     );
     return rows[0];
@@ -17,7 +17,7 @@ const getServiceById = async (id) => {
 
 const createService = async (name, description, imageUrl, priceRange, basePrice) => {
     const [result] = await pool.execute(
-        `INSERT INTO Services (name, description, image_url, price_range, base_price, status)
+        `INSERT INTO services (name, description, image_url, price_range, base_price, status)
          VALUES (?, ?, ?, ?, ?, 'active')`,
         [name, description, imageUrl, priceRange, basePrice]
     );
@@ -26,7 +26,7 @@ const createService = async (name, description, imageUrl, priceRange, basePrice)
 
 const updateService = async (id, name, description, imageUrl, priceRange, basePrice) => {
     const [result] = await pool.execute(
-        `UPDATE Services 
+        `UPDATE services 
          SET name = ?, description = ?, image_url = ?, price_range = ?, base_price = ?
          WHERE id = ?`,
         [name, description, imageUrl, priceRange, basePrice, id]
@@ -35,7 +35,7 @@ const updateService = async (id, name, description, imageUrl, priceRange, basePr
 };
 
 const softDeleteService = async (id) => {
-    await pool.execute('UPDATE Services SET status = "deleted" WHERE id = ?', [id]);
+    await pool.execute('UPDATE services SET status = "deleted" WHERE id = ?', [id]);
 };
 
 module.exports = {

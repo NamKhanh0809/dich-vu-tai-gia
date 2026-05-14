@@ -83,14 +83,14 @@ const getOrderById = async (orderId) => {
 
 const updateOrderStatus = async (orderId, status, workerId = null) => {
     if (workerId) {
-        await pool.execute('UPDATE Orders SET status = ?, worker_id = ? WHERE id = ?', [status, workerId, orderId]);
+        await pool.execute('UPDATE orders SET status = ?, worker_id = ? WHERE id = ?', [status, workerId, orderId]);
     } else {
-        await pool.execute('UPDATE Orders SET status = ? WHERE id = ?', [status, orderId]);
+        await pool.execute('UPDATE orders SET status = ? WHERE id = ?', [status, orderId]);
     }
 };
 
 const getOrdersByWorker = async (workerId, status = null) => {
-    let query = 'SELECT * FROM Orders WHERE worker_id = ?';
+    let query = 'SELECT * FROM orders WHERE worker_id = ?';
     const params = [workerId];
     if (status) {
         query += ' AND status = ?';
@@ -167,8 +167,8 @@ const getTotalEarnings = async (workerId) => {
 };
 
 const updateOrderStatusAndGet = async (orderId, newStatus, workerId = null) => {
-    await pool.execute('UPDATE Orders SET status = ? WHERE id = ?', [newStatus, orderId]);
-    const [rows] = await pool.execute('SELECT * FROM Orders WHERE id = ?', [orderId]);
+    await pool.execute('UPDATE orders SET status = ? WHERE id = ?', [newStatus, orderId]);
+    const [rows] = await pool.execute('SELECT * FROM orders WHERE id = ?', [orderId]);
     return rows[0];
 };
 
@@ -181,12 +181,12 @@ const getOrdersForReport = async (filters) => {
                w.email as worker_email, w.phone as worker_phone,
                p_w.full_name as worker_name,
                s.name as service_name
-        FROM Orders o
-        JOIN Users c ON o.customer_id = c.id
-        JOIN Profiles p_c ON c.id = p_c.user_id
-        LEFT JOIN Users w ON o.worker_id = w.id
-        LEFT JOIN Profiles p_w ON w.id = p_w.user_id
-        JOIN Services s ON o.service_id = s.id
+        FROM orders o
+        JOIN users c ON o.customer_id = c.id
+        JOIN profiles p_c ON c.id = p_c.user_id
+        LEFT JOIN users w ON o.worker_id = w.id
+        LEFT JOIN profiles p_w ON w.id = p_w.user_id
+        JOIN services s ON o.service_id = s.id
         WHERE 1=1
     `;
     const params = [];
@@ -215,7 +215,7 @@ const getOrdersForReport = async (filters) => {
 
 // Admin: Thống kê số lượng đơn theo trạng thái (có thể lọc theo khoảng thời gian)
 const getOrderSummaryByStatus = async (startDate = null, endDate = null) => {
-    let query = 'SELECT status, COUNT(*) as count FROM Orders WHERE 1=1';
+    let query = 'SELECT status, COUNT(*) as count FROM orders WHERE 1=1';
     const params = [];
     if (startDate) {
         query += ' AND created_at >= ?';
@@ -286,7 +286,7 @@ const approveOrder = async (orderId, workerIds, adminNote = null) => {
 // Admin: Từ chối đơn (cập nhật admin_note)
 const rejectOrder = async (orderId, adminNote) => {
     await pool.execute(
-        'UPDATE Orders SET status = "cancelled", admin_note = ? WHERE id = ?',
+        'UPDATE orders SET status = "cancelled", admin_note = ? WHERE id = ?',
         [adminNote, orderId]
     );
 };
