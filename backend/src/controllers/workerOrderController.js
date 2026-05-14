@@ -8,7 +8,7 @@ const {
 } = require('../models/orderModel');
 const { createNotification } = require('../models/notificationModel');
 const { getProfileByUserId } = require('../models/profileModel');
-
+const pool = require('../config/database'); // Thêm dòng này lên đầu file
 // Lấy danh sách đơn đã assigned cho thợ hiện tại
 const getAssignedOrders = async (req, res) => {
     try {
@@ -50,10 +50,14 @@ const updateOrderStatus = async (req, res) => {
         const io = req.app.get('io');
         const notificationTitle = `Order #${id} status changed to ${status}`;
         await createNotification(order.customer_id, notificationTitle, `Your order has been updated to ${status}`, id);
-        await createNotification(1, notificationTitle, `Order #${id} is now ${status}`, id);
-        
-        io.to(`user_${order.customer_id}`).emit('order_status_updated', { orderId: id, status });
-        io.to(`user_1`).emit('order_status_updated', { orderId: id, status });
+        // Tự động tìm ID của Admin
+const [adminUsers] = await pool.execute('SELECT id FROM users WHERE role = "admin" LIMIT 1');
+if (adminUsers.length > 0) {
+    const adminId = adminUsers[0].id;
+    // Gửi thông báo và socket cho đúng ID của admin
+    await createNotification(adminId, notificationTitle, `Order #${id} is now ${status}`, id);
+    io.to(`user_${adminId}`).emit('order_status_updated', { orderId: id, status });
+}
         
         res.json({ message: `Order status updated to ${status}`, order: updatedOrder });
     } catch (err) {
